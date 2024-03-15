@@ -202,7 +202,7 @@ private:
 		uint8_t     cycles = 0;
 	};
 
-	std::vector<INSTRUCTION> lookup;
+	std::array<INSTRUCTION ,256> lookup;
 	
 private: 
 	// Addressing Modes =============================================
