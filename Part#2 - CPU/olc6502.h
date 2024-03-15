@@ -85,7 +85,7 @@
 // then just remove the function.
 #include <string>
 #include <map>
-
+#include <memory>
 // Emulation Behaviour Logging ======================================
 // Uncomment this to create a logfile entry for each clock tick of 
 // the CPU. Beware: this slows down emulation considerably and
@@ -98,6 +98,8 @@
 #include <stdio.h>
 #endif
 
+
+#include "Bus.h"
 // Forward declaration of generic communications bus class to
 // prevent circular inclusions
 class MainBoard;
@@ -111,7 +113,7 @@ public:
 	~olc6502();
 
 public:
-	MainBoard& nes;
+	
 	// CPU Core registers, exposed as public here for ease of access from external
 	// examinors. This is all the 6502 has.
 	uint8_t  a      = 0x00;		// Accumulator Register
@@ -154,6 +156,8 @@ public:
 	};
 
 private:
+	MainBoard& nes;
+
 	// Convenience functions to access status register
 	uint8_t GetFlag(FLAGS6502 f);
 	void    SetFlag(FLAGS6502 f, bool v);

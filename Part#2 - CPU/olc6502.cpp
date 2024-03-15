@@ -70,9 +70,7 @@
 	~~~~~~
 	David Barr, aka javidx9, ©OneLoneCoder 2019
 */
-
 #include "olc6502.h"
-#include "Bus.h"
 #include "MainBoard.h"
 
 // Constructor

@@ -1,6 +1,5 @@
 #include "Bus.h"
-
-
+#include "MainBoard.h"
 
 Bus::Bus(MainBoard& mBoard) : nes(mBoard)
 {
