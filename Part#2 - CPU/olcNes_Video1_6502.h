@@ -76,12 +76,10 @@
 
 #include <iostream>
 #include <sstream>
-#include <memory>
 
 #include "olcPixelGameEngine.h"
 #include "MainBoard.h"
 #include "olc6502.h"
-#include "Bus.h"
 
 
 #define OLC_PGE_APPLICATION

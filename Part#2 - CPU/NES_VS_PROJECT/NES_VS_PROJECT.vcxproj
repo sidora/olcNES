@@ -130,7 +130,6 @@
     <ClCompile Include="..\Bus.cpp" />
     <ClCompile Include="..\olc6502.cpp" />
     <ClCompile Include="..\olcNes_Video1_6502.cpp" />
-    <ClCompile Include="..\MainBoard.cpp" />
     <ClCompile Include="..\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
