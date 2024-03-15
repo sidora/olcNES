@@ -4,8 +4,7 @@
 
 MainBoard::MainBoard()
 {
-	bus = std::make_unique<Bus>(*this);
-	cpu = std::make_unique<olc6502>(*this);
+	
 }
 
 MainBoard::~MainBoard()

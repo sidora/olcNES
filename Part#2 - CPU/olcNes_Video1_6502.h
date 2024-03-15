@@ -89,7 +89,7 @@
 class Demo_olc6502 : public olc::PixelGameEngine
 {
 public:
-	Demo_olc6502();
+	Demo_olc6502(MainBoard& mBoard);
 
 	std::string hex(uint32_t n, uint8_t d);
 	void DrawRam(int x, int y, uint16_t nAddr, int nRows, int nColumns);
@@ -98,7 +98,7 @@ public:
 	bool OnUserCreate();
 	bool OnUserUpdate(float fElapsedTime);
 
-	MainBoard nes;
+	MainBoard& nes;
 	std::map<uint16_t, std::string> mapAsm;
 };
 

@@ -1,14 +1,10 @@
 
-
 #include "olcNes_Video1_6502.h"
 
 
-Demo_olc6502::Demo_olc6502() { 
+Demo_olc6502::Demo_olc6502(MainBoard& mBoard) : nes(mBoard) {
 	
 	sAppName = "olc6502 Demonstration"; 
-
-
-
 
 };
 
@@ -27,7 +23,7 @@ void Demo_olc6502::DrawRam(int x, int y, uint16_t nAddr, int nRows, int nColumns
 		std::string sOffset = "$" + hex(nAddr, 4) + ":";
 		for (int col = 0; col < nColumns; col++)
 		{
-			sOffset += " " + hex(nes.bus->read(nAddr, true), 2);
+			sOffset += " " + hex(nes.getBus()->read(nAddr, true), 2);
 			nAddr += 1;
 		}
 		DrawString(nRamX, nRamY, sOffset);
@@ -39,26 +35,25 @@ void Demo_olc6502::DrawCpu(int x, int y)
 {
 		std::string status = "STATUS: ";
 		DrawString(x, y, "STATUS:", olc::WHITE);
-		DrawString(x + 64, y, "N", nes.cpu->status & olc6502::N ? olc::GREEN : olc::RED);
-		DrawString(x + 80, y, "V", nes.cpu->status & olc6502::V ? olc::GREEN : olc::RED);
-		DrawString(x + 96, y, "-", nes.cpu->status & olc6502::U ? olc::GREEN : olc::RED);
-		DrawString(x + 112, y, "B", nes.cpu->status & olc6502::B ? olc::GREEN : olc::RED);
-		DrawString(x + 128, y, "D", nes.cpu->status & olc6502::D ? olc::GREEN : olc::RED);
-		DrawString(x + 144, y, "I", nes.cpu->status & olc6502::I ? olc::GREEN : olc::RED);
-		DrawString(x + 160, y, "Z", nes.cpu->status & olc6502::Z ? olc::GREEN : olc::RED);
-		DrawString(x + 178, y, "C", nes.cpu->status & olc6502::C ? olc::GREEN : olc::RED);
-		DrawString(x, y + 10, "PC: $" + hex(nes.cpu->pc, 4));
-		DrawString(x, y + 20, "A: $" + hex(nes.cpu->a, 2) + "  [" + std::to_string(nes.cpu->a) + "]");
-		DrawString(x, y + 30, "X: $" + hex(nes.cpu->x, 2) + "  [" + std::to_string(nes.cpu->x) + "]");
-		DrawString(x, y + 40, "Y: $" + hex(nes.cpu->y, 2) + "  [" + std::to_string(nes.cpu->y) + "]");
-		DrawString(x, y + 50, "Stack P: $" + hex(nes.cpu->stkp, 4));
-	
+		DrawString(x +    64, y, "N", nes.getCpu()->status & olc6502::N ? olc::GREEN : olc::RED);
+		DrawString(x +    80, y, "V", nes.getCpu()->status & olc6502::V ? olc::GREEN : olc::RED);
+		DrawString(x +    96, y, "-", nes.getCpu()->status & olc6502::U ? olc::GREEN : olc::RED);
+		DrawString(x +   112, y, "B", nes.getCpu()->status & olc6502::B ? olc::GREEN : olc::RED);
+		DrawString(x +   128, y, "D", nes.getCpu()->status & olc6502::D ? olc::GREEN : olc::RED);
+		DrawString(x +   144, y, "I", nes.getCpu()->status & olc6502::I ? olc::GREEN : olc::RED);
+		DrawString(x +   160, y, "Z", nes.getCpu()->status & olc6502::Z ? olc::GREEN : olc::RED);
+		DrawString(x +   178, y, "C", nes.getCpu()->status & olc6502::C ? olc::GREEN : olc::RED);
+		DrawString(x, y + 10, "PC: $"      + hex(nes.getCpu()->pc, 4));
+		DrawString(x, y + 20, "A: $"       + hex(nes.getCpu()->a, 2) + "  [" + std::to_string(nes.getCpu()->a) + "]");
+		DrawString(x, y + 30, "X: $"       + hex(nes.getCpu()->x, 2) + "  [" + std::to_string(nes.getCpu()->x) + "]");
+		DrawString(x, y + 40, "Y: $"       + hex(nes.getCpu()->y, 2) + "  [" + std::to_string(nes.getCpu()->y) + "]");
+		DrawString(x, y + 50, "Stack P: $" + hex(nes.getCpu()->stkp, 4));
 }
 
 
 void Demo_olc6502::DrawCode(int x, int y, int nLines)
 {
-		auto it_a = mapAsm.find(nes.cpu->pc);
+		auto it_a = mapAsm.find(nes.getCpu()->pc);
 		int nLineY = (nLines >> 1) * 10 + y;
 		if (it_a != mapAsm.end())
 		{
@@ -73,7 +68,7 @@ void Demo_olc6502::DrawCode(int x, int y, int nLines)
 			}
 		}
 
-		it_a = mapAsm.find(nes.cpu->pc);
+		it_a = mapAsm.find(nes.getCpu()->pc);
 		nLineY = (nLines >> 1) * 10 + y;
 		if (it_a != mapAsm.end())
 		{
@@ -119,29 +114,25 @@ bool Demo_olc6502::OnUserCreate()
 	{
 		std::string b;
 		ss >> b;
-		nes.bus->ram[nOffset++] = (uint8_t)std::stoul(b, nullptr, 16);
+		nes.getBus()->ram[nOffset++] = (uint8_t)std::stoul(b, nullptr, 16);
 	}
 
 	// Set Reset Vector
-	nes.bus->ram[0xFFFC] = 0x00;
-	nes.bus->ram[0xFFFD] = 0x80;
+	nes.getBus()->ram[0xFFFC] = 0x00;
+	nes.getBus()->ram[0xFFFD] = 0x80;
 
 	// Dont forget to set IRQ and NMI vectors if you want to play with those
 
 	// Extract dissassembly
-	mapAsm = nes.cpu->disassemble(0x0000, 0xFFFF);
+	mapAsm = nes.getCpu()->disassemble(0x0000, 0xFFFF);
 
 	// Reset
-	nes.cpu.reset();
+	nes.getCpu()->reset();
 	return true;
 };
 
 bool Demo_olc6502::OnUserUpdate(float fElapsedTime)
 {
-	OutputDebugStringA("\n AKUNAMATATA \n");
-	std::string stering = std::to_string(nes.cpu->status);
-	OutputDebugStringA(stering.c_str());
-	OutputDebugStringA("\n");
 
 	Clear(olc::DARK_BLUE);
 
@@ -150,18 +141,18 @@ bool Demo_olc6502::OnUserUpdate(float fElapsedTime)
 	{
 		do
 		{
-			nes.cpu->clock();
-		} while (!nes.cpu->complete());
+			nes.getCpu()->clock();
+		} while (!nes.getCpu()->complete());
 	}
 
 	if (GetKey(olc::Key::R).bPressed)
-		nes.cpu.reset();
+		nes.getCpu()->reset();
 
 	if (GetKey(olc::Key::I).bPressed)
-		nes.cpu->irq();
+		nes.getCpu()->irq();
 
 	if (GetKey(olc::Key::N).bPressed)
-		nes.cpu->nmi();
+		nes.getCpu()->nmi();
 
 	// Draw Ram Page 0x00		
 	DrawRam(2, 2, 0x0000, 16, 16);
