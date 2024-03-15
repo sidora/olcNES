@@ -2,16 +2,16 @@
 #include <cstdint>
 #include <array>
 
-#include "olc6502.h"
+#include "MainBoard.h"
 
 class Bus
 {
 public:
-	Bus();
+	Bus(MainBoard& mBoard);
 	~Bus();
 
 public: // Devices on bus
-	olc6502 cpu;	
+	MainBoard& nes;
 
 	// Fake RAM for this part of the series
 	std::array<uint8_t, 64 * 1024> ram;

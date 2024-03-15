@@ -73,9 +73,11 @@
 
 #include <iostream>
 #include <sstream>
+#include <memory>
 
-#include "Bus.h"
+#include "MainBoard.h"
 #include "olc6502.h"
+#include "Bus.h"
 
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
@@ -85,9 +87,9 @@
 class Demo_olc6502 : public olc::PixelGameEngine
 {
 public:
-	Demo_olc6502() { sAppName = "olc6502 Demonstration"; }
+	Demo_olc6502()  { sAppName = "olc6502 Demonstration"; }
 
-	Bus nes;
+	MainBoard nes;
 	std::map<uint16_t, std::string> mapAsm;
 
 	std::string hex(uint32_t n, uint8_t d)
@@ -106,7 +108,7 @@ public:
 			std::string sOffset = "$" + hex(nAddr, 4) + ":";
 			for (int col = 0; col < nColumns; col++)
 			{
-				sOffset += " " + hex(nes.read(nAddr, true), 2);
+				sOffset += " " + hex(nes.bus->read(nAddr, true), 2);
 				nAddr += 1;
 			}
 			DrawString(nRamX, nRamY, sOffset);
@@ -116,50 +118,55 @@ public:
 
 	void DrawCpu(int x, int y)
 	{
-		std::string status = "STATUS: ";
-		DrawString(x , y , "STATUS:", olc::WHITE);
-		DrawString(x  + 64, y, "N", nes.cpu.status & olc6502::N ? olc::GREEN : olc::RED);
-		DrawString(x  + 80, y , "V", nes.cpu.status & olc6502::V ? olc::GREEN : olc::RED);
-		DrawString(x  + 96, y , "-", nes.cpu.status & olc6502::U ? olc::GREEN : olc::RED);
-		DrawString(x  + 112, y , "B", nes.cpu.status & olc6502::B ? olc::GREEN : olc::RED);
-		DrawString(x  + 128, y , "D", nes.cpu.status & olc6502::D ? olc::GREEN : olc::RED);
-		DrawString(x  + 144, y , "I", nes.cpu.status & olc6502::I ? olc::GREEN : olc::RED);
-		DrawString(x  + 160, y , "Z", nes.cpu.status & olc6502::Z ? olc::GREEN : olc::RED);
-		DrawString(x  + 178, y , "C", nes.cpu.status & olc6502::C ? olc::GREEN : olc::RED);
-		DrawString(x , y + 10, "PC: $" + hex(nes.cpu.pc, 4));
-		DrawString(x , y + 20, "A: $" +  hex(nes.cpu.a, 2) + "  [" + std::to_string(nes.cpu.a) + "]");
-		DrawString(x , y + 30, "X: $" +  hex(nes.cpu.x, 2) + "  [" + std::to_string(nes.cpu.x) + "]");
-		DrawString(x , y + 40, "Y: $" +  hex(nes.cpu.y, 2) + "  [" + std::to_string(nes.cpu.y) + "]");
-		DrawString(x , y + 50, "Stack P: $" + hex(nes.cpu.stkp, 4));
+	
+		if (nes.cpu != nullptr) {
+			std::string status = "STATUS: ";
+			DrawString(x, y, "STATUS:", olc::WHITE);
+			DrawString(x + 64, y, "N", nes.cpu->status & olc6502::N ? olc::GREEN : olc::RED);
+			DrawString(x + 80, y, "V", nes.cpu->status & olc6502::V ? olc::GREEN : olc::RED);
+			DrawString(x + 96, y, "-", nes.cpu->status & olc6502::U ? olc::GREEN : olc::RED);
+			DrawString(x + 112, y, "B", nes.cpu->status & olc6502::B ? olc::GREEN : olc::RED);
+			DrawString(x + 128, y, "D", nes.cpu->status & olc6502::D ? olc::GREEN : olc::RED);
+			DrawString(x + 144, y, "I", nes.cpu->status & olc6502::I ? olc::GREEN : olc::RED);
+			DrawString(x + 160, y, "Z", nes.cpu->status & olc6502::Z ? olc::GREEN : olc::RED);
+			DrawString(x + 178, y, "C", nes.cpu->status & olc6502::C ? olc::GREEN : olc::RED);
+			DrawString(x, y + 10, "PC: $" + hex(nes.cpu->pc, 4));
+			DrawString(x, y + 20, "A: $" + hex(nes.cpu->a, 2) + "  [" + std::to_string(nes.cpu->a) + "]");
+			DrawString(x, y + 30, "X: $" + hex(nes.cpu->x, 2) + "  [" + std::to_string(nes.cpu->x) + "]");
+			DrawString(x, y + 40, "Y: $" + hex(nes.cpu->y, 2) + "  [" + std::to_string(nes.cpu->y) + "]");
+			DrawString(x, y + 50, "Stack P: $" + hex(nes.cpu->stkp, 4));
+		}
 	}
 
 	void DrawCode(int x, int y, int nLines)
 	{
-		auto it_a = mapAsm.find(nes.cpu.pc);
-		int nLineY = (nLines >> 1) * 10 + y;
-		if (it_a != mapAsm.end())
-		{
-			DrawString(x, nLineY, (*it_a).second, olc::CYAN);
-			while (nLineY < (nLines * 10) + y)
+		if (nes.cpu != nullptr) {
+			auto it_a = mapAsm.find(nes.cpu->pc);
+			int nLineY = (nLines >> 1) * 10 + y;
+			if (it_a != mapAsm.end())
 			{
-				nLineY += 10;
-				if (++it_a != mapAsm.end())
+				DrawString(x, nLineY, (*it_a).second, olc::CYAN);
+				while (nLineY < (nLines * 10) + y)
 				{
-					DrawString(x, nLineY, (*it_a).second);
+					nLineY += 10;
+					if (++it_a != mapAsm.end())
+					{
+						DrawString(x, nLineY, (*it_a).second);
+					}
 				}
 			}
-		}
 
-		it_a = mapAsm.find(nes.cpu.pc);
-		nLineY = (nLines >> 1) * 10 + y;
-		if (it_a != mapAsm.end())
-		{
-			while (nLineY > y)
+			it_a = mapAsm.find(nes.cpu->pc);
+			nLineY = (nLines >> 1) * 10 + y;
+			if (it_a != mapAsm.end())
 			{
-				nLineY -= 10;
-				if (--it_a != mapAsm.end())
+				while (nLineY > y)
 				{
-					DrawString(x, nLineY, (*it_a).second);
+					nLineY -= 10;
+					if (--it_a != mapAsm.end())
+					{
+						DrawString(x, nLineY, (*it_a).second);
+					}
 				}
 			}
 		}
@@ -195,17 +202,17 @@ public:
 		{
 			std::string b;
 			ss >> b;
-			nes.ram[nOffset++] = (uint8_t)std::stoul(b, nullptr, 16);
+			nes.bus->ram[nOffset++] = (uint8_t)std::stoul(b, nullptr, 16);
 		}
 
 		// Set Reset Vector
-		nes.ram[0xFFFC] = 0x00;
-		nes.ram[0xFFFD] = 0x80;
+		nes.bus->ram[0xFFFC] = 0x00;
+		nes.bus->ram[0xFFFD] = 0x80;
 
 		// Dont forget to set IRQ and NMI vectors if you want to play with those
 				
 		// Extract dissassembly
-		mapAsm = nes.cpu.disassemble(0x0000, 0xFFFF);
+		mapAsm = nes.cpu->disassemble(0x0000, 0xFFFF);
 
 		// Reset
 		nes.cpu.reset();
@@ -221,19 +228,19 @@ public:
 		{
 			do
 			{
-				nes.cpu.clock();
+				nes.cpu->clock();
 			} 
-			while (!nes.cpu.complete());
+			while (!nes.cpu->complete());
 		}
 
 		if (GetKey(olc::Key::R).bPressed)
 			nes.cpu.reset();
 
 		if (GetKey(olc::Key::I).bPressed)
-			nes.cpu.irq();
+			nes.cpu->irq();
 
 		if (GetKey(olc::Key::N).bPressed)
-			nes.cpu.nmi();
+			nes.cpu->nmi();
 
 		// Draw Ram Page 0x00		
 		DrawRam(2, 2, 0x0000, 16, 16);

@@ -2,11 +2,11 @@
 
 
 
-Bus::Bus()
+Bus::Bus(MainBoard& mBoard) : nes(mBoard)
 {
 	// Connect CPU to communication bus
-	cpu.ConnectBus(this);
-
+	//mainBoard.cpu.ConnectBus(this);
+	
 	// Clear RAM contents, just in case :P
 	for (auto &i : ram) i = 0x00;
 }

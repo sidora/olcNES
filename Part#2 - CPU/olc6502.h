@@ -73,6 +73,7 @@
 
 #pragma once
 
+
 // With little modification, reliance upon the stdlib can
 // be removed entirely if required.
 
@@ -99,17 +100,18 @@
 
 // Forward declaration of generic communications bus class to
 // prevent circular inclusions
-class Bus;
+class MainBoard;
 
 
 // The 6502 Emulation Class. This is it!
 class olc6502
 {
 public:
-	olc6502();
+	olc6502(MainBoard& mBoard);
 	~olc6502();
 
 public:
+	MainBoard& nes;
 	// CPU Core registers, exposed as public here for ease of access from external
 	// examinors. This is all the 6502 has.
 	uint8_t  a      = 0x00;		// Accumulator Register
@@ -130,9 +132,6 @@ public:
 	// a utility function to enable "step-by-step" execution, without manually 
 	// clocking every cycle
 	bool complete();
-
-	// Link this CPU to a communications bus
-	void ConnectBus(Bus *n) { bus = n; }
 
 	// Produces a map of strings, with keys equivalent to instruction start locations
 	// in memory, for the specified address range
@@ -169,7 +168,8 @@ private:
 	uint32_t clock_count = 0;	   // A global accumulation of the number of clocks
 
 	// Linkage to the communications bus
-	Bus     *bus = nullptr;
+	//Bus     *bus = nullptr;
+	
 	uint8_t read(uint16_t a);
 	void    write(uint16_t a, uint8_t d);
 
