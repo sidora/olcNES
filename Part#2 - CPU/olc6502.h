@@ -234,7 +234,7 @@ private:
 	// have not modelled "unofficial" opcodes. As each opcode is 
 	// defined by 1 byte, there are potentially 256 possible codes.
 	// Codes are not used in a "switch case" style on a processor,
-	// instead they are repsonisble for switching individual parts of
+	// instead they are responsible for switching individual parts of
 	// CPU circuits on and off. The opcodes listed here are official, 
 	// meaning that the functionality of the chip when provided with
 	// these codes is as the developers intended it to be. Unofficial
