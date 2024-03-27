@@ -115,7 +115,7 @@ bool Demo_olc6502::OnUserUpdate(float fElapsedTime)
 			fResidualTime -= fElapsedTime;
 		else
 		{
-			fResidualTime += (1.0f / 60.0f) - fElapsedTime;
+			fResidualTime += (1.0f / 59.94f) - fElapsedTime;
 			do { nes.clock(); } while (!nes.getPpu()->frame_complete);
 			nes.getPpu()->frame_complete = false;
 		}

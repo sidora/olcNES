@@ -13,10 +13,21 @@ MainBoard::~MainBoard()
 
 void MainBoard::cpuWrite(uint16_t addr, uint8_t data)
 {
-	if (addr >= 0x0000 && addr <= 0x1FFF) {
+	if (addr >= 0x0000 && addr <= 0x1FFF)
+	{
+		// System RAM Address Range. The range covers 8KB, though
+		// there is only 2KB available. That 2KB is "mirrored"
+		// through this address range. Using bitwise AND to mask
+		// the bottom 11 bits is the same as addr % 2048.
 		cpuRam[addr & 0x07FF] = data;
+
 	}
-	else if (addr >= 0x2000 && addr <= 0x3FFF) {
+	else if (addr >= 0x2000 && addr <= 0x3FFF)
+	{
+		// PPU Address range. The PPU only has 8 primary registers
+		// and these are repeated throughout this range. We can
+		// use bitwise AND operation to mask the bottom 3 bits, 
+		// which is the equivalent of addr % 8.
 		getPpu()->cpuWrite(addr & 0x0007, data);
 	}
 }
@@ -24,13 +35,14 @@ void MainBoard::cpuWrite(uint16_t addr, uint8_t data)
 uint8_t MainBoard::cpuRead(uint16_t addr, bool bReadOnly)
 {
 	uint8_t data = 0x00;
-
-	if (addr >= 0x0000 && addr <= 0x1FFF) {
-
+	if (addr >= 0x0000 && addr <= 0x1FFF)
+	{
+		// System RAM Address Range, mirrored every 2048
 		data = cpuRam[addr & 0x07FF];
 	}
-	else if (addr >= 0x2000 && addr <= 0x3FFF) {
-
+	else if (addr >= 0x2000 && addr <= 0x3FFF)
+	{
+		// PPU Address range, mirrored every 8
 		data = getPpu()->cpuRead(addr & 0x0007, bReadOnly);
 	}
 
