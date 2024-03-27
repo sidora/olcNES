@@ -23,7 +23,7 @@ void Demo_olc6502::DrawRam(int x, int y, uint16_t nAddr, int nRows, int nColumns
 		std::string sOffset = "$" + hex(nAddr, 4) + ":";
 		for (int col = 0; col < nColumns; col++)
 		{
-			sOffset += " " + hex(nes.getBus()->cpuRead(nAddr, true), 2);
+			sOffset += " " + hex(nes.cpuRead(nAddr, true), 2);
 			nAddr += 1;
 		}
 		DrawString(nRamX, nRamY, sOffset);

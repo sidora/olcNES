@@ -80,7 +80,7 @@
 // Ths is required for translation table and disassembler. The table
 // could be implemented straight up as an array, but I used a vector.
 #include <vector>
-
+#include <array>
 // These are required for disassembler. If you dont require disassembly
 // then just remove the function.
 #include <string>
@@ -99,7 +99,6 @@
 #endif
 
 
-#include "Bus.h"
 // Forward declaration of generic communications bus class to
 // prevent circular inclusions
 class MainBoard;

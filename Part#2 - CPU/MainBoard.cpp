@@ -1,15 +1,40 @@
 #include "MainBoard.h"
 #include "olc6502.h"
 #include "olc2C02.h"
-#include "Bus.h"
 
 MainBoard::MainBoard()
 {
-	
+	for (auto& i : cpuRam) i = 0x00;
 }
 
 MainBoard::~MainBoard()
 {
+}
+
+void MainBoard::cpuWrite(uint16_t addr, uint8_t data)
+{
+	if (addr >= 0x0000 && addr <= 0x1FFF) {
+		cpuRam[addr & 0x07FF] = data;
+	}
+	else if (addr >= 0x2000 && addr <= 0x3FFF) {
+		getPpu()->cpuWrite(addr & 0x0007, data);
+	}
+}
+
+uint8_t MainBoard::cpuRead(uint16_t addr, bool bReadOnly)
+{
+	uint8_t data = 0x00;
+
+	if (addr >= 0x0000 && addr <= 0x1FFF) {
+
+		data = cpuRam[addr & 0x07FF];
+	}
+	else if (addr >= 0x2000 && addr <= 0x3FFF) {
+
+		data = getPpu()->cpuRead(addr & 0x0007, bReadOnly);
+	}
+
+	return data;
 }
 
 void MainBoard::insertCartridge(const std::shared_ptr<Cartridge>& cartridge)

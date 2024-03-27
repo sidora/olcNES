@@ -13,12 +13,15 @@ class MainBoard
 public:
 	MainBoard();
 	~MainBoard();
-	void setBus(Bus* bus_) { bus = bus_; };
+
 	void setCpu(olc6502* cpu_) { cpu = cpu_; };
 	void setPpu(olc2C02* ppu_) { ppu = ppu_; };
-	Bus* getBus() { return bus; };
 	olc6502* getCpu() { return cpu; };
 	olc2C02* getPpu() { return ppu; };
+
+
+	void cpuWrite(uint16_t addr, uint8_t data);
+	uint8_t cpuRead(uint16_t addr, bool bReadOnly = false);
 
 	std::array<uint8_t, 2048> cpuRam;
 
@@ -32,7 +35,6 @@ public:
 
 
 private:
-	Bus* bus;
 	olc6502* cpu;
 	olc2C02* ppu;
 	std::shared_ptr<Cartridge> cart;
