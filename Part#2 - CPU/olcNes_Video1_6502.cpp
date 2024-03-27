@@ -104,7 +104,8 @@ bool Demo_olc6502::OnUserCreate()
 
 bool Demo_olc6502::OnUserUpdate(float fElapsedTime)
 {
-	Clear(olc::DARK_BLUE);
+	
+	Clear(olc::Pixel(40, 40, 40));
 
 	
 	

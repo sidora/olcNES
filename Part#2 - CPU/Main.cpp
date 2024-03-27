@@ -17,7 +17,7 @@ int main()
 	nes.setPpu(ppu.get());
 
 	Demo_olc6502 demo(nes);
-	demo.Construct(680, 480, 2, 2);
+	demo.Construct(720, 480, 2, 2);
 	demo.Start();
 	return 0;
 }
