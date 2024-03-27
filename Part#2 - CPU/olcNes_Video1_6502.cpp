@@ -23,7 +23,7 @@ void Demo_olc6502::DrawRam(int x, int y, uint16_t nAddr, int nRows, int nColumns
 		std::string sOffset = "$" + hex(nAddr, 4) + ":";
 		for (int col = 0; col < nColumns; col++)
 		{
-			sOffset += " " + hex(nes.getBus()->read(nAddr, true), 2);
+			sOffset += " " + hex(nes.getBus()->cpuRead(nAddr, true), 2);
 			nAddr += 1;
 		}
 		DrawString(nRamX, nRamY, sOffset);
@@ -86,84 +86,74 @@ void Demo_olc6502::DrawCode(int x, int y, int nLines)
 
 bool Demo_olc6502::OnUserCreate()
 {
-	// Load Program (assembled at https://www.masswerk.at/6502/assembler.html)
-	/*
-		*=$8000
-		LDX #10
-		STX $0000
-		LDX #3
-		STX $0001
-		LDY $0000
-		LDA #0
-		CLC
-		loop
-		ADC $0001
-		DEY
-		BNE loop
-		STA $0002
-		NOP
-		NOP
-		NOP
-	*/
+	// Load the cartridge
+	cart = std::make_shared<Cartridge>("../nestest.nes");
+	if (!cart->ImageValid())
+		return false;
 
-	// Convert hex string into bytes for RAM
-	std::stringstream ss;
-	ss << "A2 0A 8E 00 00 A2 03 8E 01 00 AC 00 00 A9 00 18 6D 01 00 88 D0 FA 8D 02 00 EA EA EA";
-	uint16_t nOffset = 0x8000;
-	while (!ss.eof())
-	{
-		std::string b;
-		ss >> b;
-		nes.getBus()->ram[nOffset++] = (uint8_t)std::stoul(b, nullptr, 16);
-	}
-
-	// Set Reset Vector
-	nes.getBus()->ram[0xFFFC] = 0x00;
-	nes.getBus()->ram[0xFFFD] = 0x80;
-
-	// Dont forget to set IRQ and NMI vectors if you want to play with those
+	// Insert into NES
+	nes.insertCartridge(cart);
 
 	// Extract dissassembly
 	mapAsm = nes.getCpu()->disassemble(0x0000, 0xFFFF);
 
-	// Reset
+	// Reset NES
 	nes.getCpu()->reset();
 	return true;
 };
 
 bool Demo_olc6502::OnUserUpdate(float fElapsedTime)
 {
-
 	Clear(olc::DARK_BLUE);
 
-
-	if (GetKey(olc::Key::SPACE).bPressed)
+	
+	
+	if (bEmulationRun)
 	{
-		do
+		if (fResidualTime > 0.0f)
+			fResidualTime -= fElapsedTime;
+		else
 		{
-			nes.getCpu()->clock();
-		} while (!nes.getCpu()->complete());
+			fResidualTime += (1.0f / 60.0f) - fElapsedTime;
+			do { nes.clock(); } while (!nes.getPpu()->frame_complete);
+			nes.getPpu()->frame_complete = false;
+		}
+	}
+	else
+	{
+		// Emulate code step-by-step
+		if (GetKey(olc::Key::C).bPressed)
+		{
+			// Clock enough times to execute a whole CPU instruction
+			do { nes.clock(); } while (!nes.getCpu()->complete());
+			// CPU clock runs slower than system clock, so it may be
+			// complete for additional system clock cycles. Drain
+			// those out
+			do { nes.clock(); } while (nes.getCpu()->complete());
+		}
+
+		// Emulate one whole frame
+		if (GetKey(olc::Key::F).bPressed)
+		{
+			// Clock enough times to draw a single frame
+			do { nes.clock(); } while (!nes.getPpu()->frame_complete);
+			// Use residual clock cycles to complete current instruction
+			do { nes.clock(); } while (!nes.getCpu()->complete());
+			// Reset frame completion flag
+			nes.getPpu()->frame_complete = false;
+		}
 	}
 
-	if (GetKey(olc::Key::R).bPressed)
-		nes.getCpu()->reset();
 
-	if (GetKey(olc::Key::I).bPressed)
-		nes.getCpu()->irq();
+	if (GetKey(olc::Key::SPACE).bPressed) bEmulationRun = !bEmulationRun;
+	if (GetKey(olc::Key::R).bPressed) nes.reset();
 
-	if (GetKey(olc::Key::N).bPressed)
-		nes.getCpu()->nmi();
+	DrawCpu(516, 2);
+	DrawCode(516, 72, 26);
 
-	// Draw Ram Page 0x00		
-	DrawRam(2, 2, 0x0000, 16, 16);
-	DrawRam(2, 182, 0x8000, 16, 16);
-	DrawCpu(448, 2);
-	DrawCode(448, 72, 26);
-
-
-	DrawString(10, 370, "SPACE = Step Instruction    R = RESET    I = IRQ    N = NMI");
-
+	DrawSprite(0, 0, &nes.getPpu()->GetScreen(), 2);
 	return true;
+
 };
 
 

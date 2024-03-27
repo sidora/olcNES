@@ -1,6 +1,5 @@
-
 /*
-	olc6502 - An emulation of the 6502/2A03 processor
+	olc::NES - Picture Processing Unit (PPU) 2C02
 	"Thanks Dad for believing computers were gonna be a big deal..." - javidx9
 
 	License (OLC-3)
@@ -36,25 +35,8 @@
 	(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 	OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-	Background
-	~~~~~~~~~~
-	I love this microprocessor. It was at the heart of two of my favourite
-	machines, the BBC Micro, and the Nintendo Entertainment System, as well
-	as countless others in that era. I learnt to program on the Model B, and
-	I learnt to love games on the NES, so in many ways, this processor is
-	why I am the way I am today.
 
-	In February 2019, I decided to undertake a selfish personal project and
-	build a NES emulator. Ive always wanted to, and as such I've avoided
-	looking at source code for such things. This made making this a real
-	personal challenge. I know its been done countless times, and very likely
-	in far more clever and accurate ways than mine, but I'm proud of this.
-
-	Datasheet: http://archive.6502.org/datasheets/rockwell_r650x_r651x.pdf
-
-	Files: olc6502.h, olc6502.cpp
-
-	Relevant Video: https://youtu.be/8XmxKPJDGU0
+	Relevant Video: https://youtu.be/xdzOvpYPmGE
 
 	Links
 	~~~~~
@@ -73,40 +55,68 @@
 */
 
 #pragma once
-
-#include <iostream>
-#include <sstream>
+#include <cstdint>
+#include <memory>
 
 #include "olcPixelGameEngine.h"
-#include "MainBoard.h"
-#include "olc6502.h"
-#include "olc2C02.h"
+
 #include "Cartridge.h"
+class MainBoard;
 
-
-#define OLC_PGE_APPLICATION
-
-class Demo_olc6502 : public olc::PixelGameEngine
+class olc2C02
 {
 public:
-	Demo_olc6502(MainBoard& mBoard);
+	olc2C02(MainBoard& mBoard);
+	~olc2C02();
 
-	std::string hex(uint32_t n, uint8_t d);
-	void DrawRam(int x, int y, uint16_t nAddr, int nRows, int nColumns);
-	void DrawCpu(int x, int y);
-	void DrawCode(int x, int y, int nLines);
-	bool OnUserCreate();
-	bool OnUserUpdate(float fElapsedTime);
+private:		
+	uint8_t     tblName[2][1024];
+	uint8_t     tblPattern[2][4096];
+	uint8_t		tblPalette[32];
+
+private:
+	olc::Pixel  palScreen[0x40];
+	// In Video
+	// olc::Sprite sprScreen = olc::Sprite(256, 240);
+	// olc::Sprite sprNameTable[2] = { olc::Sprite(256, 240), olc::Sprite(256, 240) };
+	// olc::Sprite sprPatternTable[2] = { olc::Sprite(128, 128), olc::Sprite(128, 128) };
+
+	// Changed To for API breaking subsequent PGE Update
+	olc::Sprite* sprScreen;
+	olc::Sprite* sprNameTable[2];
+	olc::Sprite* sprPatternTable[2];
+
+public:
+	// Debugging Utilities
+	olc::Sprite& GetScreen();
+	olc::Sprite& GetNameTable(uint8_t i);
+	olc::Sprite& GetPatternTable(uint8_t i);
+	bool frame_complete = false;
+
+private:
+	int16_t scanline = 0;
+	int16_t cycle = 0;
+	
+
+public:
+	// Communications with Main Bus
+	uint8_t cpuRead(uint16_t addr, bool rdonly = false);
+	void    cpuWrite(uint16_t addr, uint8_t  data);
+
+	// Communications with PPU Bus
+	uint8_t ppuRead(uint16_t addr, bool rdonly = false);
+	void    ppuWrite(uint16_t addr, uint8_t data);
+
+private:
+	// The Cartridge or "GamePak"
+	std::shared_ptr<Cartridge> cart;
+
+public:
+	// Interface
+	void ConnectCartridge(const std::shared_ptr<Cartridge>& cartridge);
+	void clock();
 
 private:
 	MainBoard& nes;
-	std::map<uint16_t, std::string> mapAsm;
-	std::shared_ptr<Cartridge> cart;
-	bool bEmulationRun = false;
-	float fResidualTime = 0.0f;
 };
-
-
-
-
 
