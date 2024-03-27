@@ -241,7 +241,7 @@ void olc2C02::clock()
 {
 
 	// Fake some noise for now
-	sprScreen->SetPixel(cycle - 1, scanline, palScreen[(rand() % 2) ? 0x3F : 0x30]);
+	sprScreen->SetPixel(cycle - 1, scanline, palScreen[rand() % 0x3F]);
 
 	// Advance renderer - it never stops, it's relentless
 	cycle++;
