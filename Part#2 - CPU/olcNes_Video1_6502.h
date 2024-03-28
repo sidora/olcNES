@@ -93,8 +93,8 @@ public:
 
 	std::string hex(uint32_t n, uint8_t d);
 	void DrawRam(int x, int y, uint16_t nAddr, int nRows, int nColumns);
-	void DrawCpu(int x, int y);
-	void DrawCode(int x, int y, int nLines);
+	void DrawCpu();
+	void DrawCode(int nLines);
 	bool OnUserCreate();
 	bool OnUserUpdate(float fElapsedTime);
 
@@ -104,6 +104,7 @@ private:
 	std::shared_ptr<Cartridge> cart;
 	bool bEmulationRun = false;
 	float fResidualTime = 0.0f;
+	int cpuAreaHeight = 100;
 
 	olc::Pixel txtCol;
 };

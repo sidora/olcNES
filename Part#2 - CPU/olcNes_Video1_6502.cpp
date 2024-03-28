@@ -32,57 +32,78 @@ void Demo_olc6502::DrawRam(int x, int y, uint16_t nAddr, int nRows, int nColumns
 	}
 };
 
-void Demo_olc6502::DrawCpu(int x, int y)
+void Demo_olc6502::DrawCpu()
 {
-	olc::Pixel onCol = olc::GREEN;
-	olc::Pixel ofCol = olc::Pixel(0,0,0);
+	int x = 256 * 2;
+	int y = 0;
+	int sideWidth = GetDrawTargetWidth() - x;
+	float backAreaWidth = sideWidth * 0.9f;
+	int backAreaX = x + ((sideWidth - backAreaWidth) * 0.5f);
+	
+
+
+	FillRect(backAreaX, y + 8, backAreaWidth, cpuAreaHeight - 8, olc::Pixel(20, 20, 20));
+	FillRect(backAreaX, y + 8, backAreaWidth, cpuAreaHeight *0.15f, olc::Pixel(90, 90, 90));
+	DrawString(x+ backAreaWidth*0.5f, y + 4 + cpuAreaHeight * 0.075f, "CPU", olc::Pixel(20, 20, 20));
+
+	olc::Pixel onCol = olc::Pixel(101, 252, 190);
+	olc::Pixel ofCol = olc::Pixel(0, 0, 0);
+
 
 	int Ofst = 80;
 	int Spce = 14;
+	int newX = x + 30;
+	int newY = y + 28;
 	
-	DrawString(x, y, "  FLAGS -", txtCol);
-	DrawString(x + Ofst + (Spce*0), y, "N", nes.getCpu()->status & olc6502::N ? onCol : ofCol);
-	DrawString(x + Ofst + (Spce*1), y, "V", nes.getCpu()->status & olc6502::V ? onCol : ofCol);
-	DrawString(x + Ofst + (Spce*2), y, "B", nes.getCpu()->status & olc6502::B ? onCol : ofCol);
-	DrawString(x + Ofst + (Spce*3), y, "I", nes.getCpu()->status & olc6502::I ? onCol : ofCol);
-	DrawString(x + Ofst + (Spce*4), y, "Z", nes.getCpu()->status & olc6502::Z ? onCol : ofCol);
-	DrawString(x + Ofst + (Spce*5), y, "C", nes.getCpu()->status & olc6502::C ? onCol : ofCol);
+	DrawString(newX, newY, "  FLAGS -", txtCol);
+	DrawString(newX + Ofst + (Spce*0),newY, "N", nes.getCpu()->status & olc6502::N ? onCol : ofCol);
+	DrawString(newX + Ofst + (Spce*1),newY, "V", nes.getCpu()->status & olc6502::V ? onCol : ofCol);
+	DrawString(newX + Ofst + (Spce*2),newY, "B", nes.getCpu()->status & olc6502::B ? onCol : ofCol);
+	DrawString(newX + Ofst + (Spce*3),newY, "I", nes.getCpu()->status & olc6502::I ? onCol : ofCol);
+	DrawString(newX + Ofst + (Spce*4),newY, "Z", nes.getCpu()->status & olc6502::Z ? onCol : ofCol);
+	DrawString(newX + Ofst + (Spce*5),newY, "C", nes.getCpu()->status & olc6502::C ? onCol : ofCol);
 
-	DrawString(x, y + 10, "     PC - $" + hex(nes.getCpu()->pc, 4), txtCol);
-	DrawString(x, y + 20, "      A - $" + hex(nes.getCpu()->a, 2) + "  [" + std::to_string(nes.getCpu()->a) + "]", txtCol);
-	DrawString(x, y + 30, "      X - $" + hex(nes.getCpu()->x, 2) + "  [" + std::to_string(nes.getCpu()->x) + "]", txtCol);
-	DrawString(x, y + 40, "      Y - $" + hex(nes.getCpu()->y, 2) + "  [" + std::to_string(nes.getCpu()->y) + "]", txtCol);
-	DrawString(x, y + 50, "Stack P - $" + hex(nes.getCpu()->stkp, 4), txtCol);
+	DrawString(newX, newY + 12, "     PC - $" + hex(nes.getCpu()->pc, 4), txtCol);
+	DrawString(newX, newY + 24, "      A - $" + hex(nes.getCpu()->a,  2) + "  [" + std::to_string(nes.getCpu()->a) + "]", txtCol);
+	DrawString(newX, newY + 36, "      X - $" + hex(nes.getCpu()->x,  2) + "  [" + std::to_string(nes.getCpu()->x) + "]", txtCol);
+	DrawString(newX, newY + 48, "      Y - $" + hex(nes.getCpu()->y,  2) + "  [" + std::to_string(nes.getCpu()->y) + "]", txtCol);
+	DrawString(newX, newY + 60, "Stack P - $" + hex(nes.getCpu()->stkp, 4), txtCol);
 }
 
 
-void Demo_olc6502::DrawCode(int x, int y, int nLines)
+void Demo_olc6502::DrawCode(int nLines)
 {
+	int x = 256 * 2;
+	int y = cpuAreaHeight+20;
+
+	int newX = x + 6;
+	int spce = 12;
+
 		auto it_a = mapAsm.find(nes.getCpu()->pc);
-		int nLineY = (nLines >> 1) * 10 + y;
+		int nLineY = (nLines >> 1) * spce + y;
 		if (it_a != mapAsm.end())
 		{
-			DrawString(x, nLineY, (*it_a).second, olc::CYAN);
-			while (nLineY < (nLines * 10) + y)
+			DrawString(newX, nLineY, (*it_a).second, olc::Pixel(91, 249, 240));
+			while (nLineY < (nLines * spce) + y)
 			{
-				nLineY += 10;
+				nLineY += spce;
 				if (++it_a != mapAsm.end())
 				{
-					DrawString(x, nLineY, (*it_a).second, txtCol);
+					DrawString(newX, nLineY, (*it_a).second, txtCol);
 				}
 			}
 		}
 
 		it_a = mapAsm.find(nes.getCpu()->pc);
-		nLineY = (nLines >> 1) * 10 + y;
+		nLineY = (nLines >> 1) * spce + y;
 		if (it_a != mapAsm.end())
 		{
 			while (nLineY > y)
 			{
-				nLineY -= 10;
+				nLineY -= spce;
 				if (--it_a != mapAsm.end())
 				{
-					DrawString(x, nLineY, (*it_a).second, txtCol);
+					DrawString(newX, nLineY, (*it_a).second, txtCol);
 				}
 			}
 		}
@@ -154,8 +175,8 @@ bool Demo_olc6502::OnUserUpdate(float fElapsedTime)
 	if (GetKey(olc::Key::SPACE).bPressed) bEmulationRun = !bEmulationRun;
 	if (GetKey(olc::Key::R).bPressed) nes.reset();
 
-	DrawCpu(516, 2);
-	DrawCode(516, 72, 26);
+	DrawCpu();
+	DrawCode(26);
 
 	DrawSprite(0, 0, &nes.getPpu()->GetScreen(), 2);
 	return true;
