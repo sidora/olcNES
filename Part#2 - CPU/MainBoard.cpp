@@ -13,7 +13,17 @@ MainBoard::~MainBoard()
 
 void MainBoard::cpuWrite(uint16_t addr, uint8_t data)
 {
-	if (addr >= 0x0000 && addr <= 0x1FFF)
+	if (cart->cpuWrite(addr, data))
+	{
+		// The cartridge "sees all" and has the facility to veto
+		// the propagation of the bus transaction if it requires.
+		// This allows the cartridge to map any address to some
+		// other data, including the facility to divert transactions
+		// with other physical devices. The NES does not do this
+		// but I figured it might be quite a flexible way of adding
+		// "custom" hardware to the NES in the future!
+	}
+	else if (addr >= 0x0000 && addr <= 0x1FFF)
 	{
 		// System RAM Address Range. The range covers 8KB, though
 		// there is only 2KB available. That 2KB is "mirrored"
@@ -35,6 +45,10 @@ void MainBoard::cpuWrite(uint16_t addr, uint8_t data)
 uint8_t MainBoard::cpuRead(uint16_t addr, bool bReadOnly)
 {
 	uint8_t data = 0x00;
+	if (cart->cpuRead(addr, data))
+	{
+		// Cartridge Address Range
+	}
 	if (addr >= 0x0000 && addr <= 0x1FFF)
 	{
 		// System RAM Address Range, mirrored every 2048
