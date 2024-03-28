@@ -104,6 +104,8 @@ private:
 	std::shared_ptr<Cartridge> cart;
 	bool bEmulationRun = false;
 	float fResidualTime = 0.0f;
+
+	olc::Pixel txtCol;
 };
 
 
