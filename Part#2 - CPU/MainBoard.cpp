@@ -40,6 +40,10 @@ void MainBoard::cpuWrite(uint16_t addr, uint8_t data)
 		// which is the equivalent of addr % 8.
 		getPpu()->cpuWrite(addr & 0x0007, data);
 	}
+	else if (addr >= 0x4016 && addr <= 0x4017)
+	{
+		controller_state[addr & 0x0001] = controller[addr & 0x0001];
+	}
 }
 
 uint8_t MainBoard::cpuRead(uint16_t addr, bool bReadOnly)
@@ -58,6 +62,11 @@ uint8_t MainBoard::cpuRead(uint16_t addr, bool bReadOnly)
 	{
 		// PPU Address range, mirrored every 8
 		data = getPpu()->cpuRead(addr & 0x0007, bReadOnly);
+	}
+	else if (addr >= 0x4016 && addr <= 0x4017)
+	{
+		data = (controller_state[addr & 0x0001] & 0x80) > 0;
+		controller_state[addr & 0x0001] <<= 1;
 	}
 
 	return data;
