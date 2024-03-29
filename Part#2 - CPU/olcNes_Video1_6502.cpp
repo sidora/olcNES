@@ -39,20 +39,17 @@ void Demo_olc6502::DrawCpu()
 	int sideWidth = GetDrawTargetWidth() - x;
 	float backAreaWidth = sideWidth * 0.9f;
 	int backAreaX = x + ((sideWidth - backAreaWidth) * 0.5f);
-	
-
 
 	FillRect(backAreaX, y + 8, backAreaWidth, cpuAreaHeight - 8, olc::Pixel(20, 20, 20));
 	FillRect(backAreaX, y + 8, backAreaWidth, cpuAreaHeight *0.15f, olc::Pixel(90, 90, 90));
 	DrawString(x+ backAreaWidth*0.5f, y + 4 + cpuAreaHeight * 0.075f, "CPU", olc::Pixel(20, 20, 20));
 
 	olc::Pixel onCol = olc::Pixel(101, 252, 190);
-	olc::Pixel ofCol = olc::Pixel(0, 0, 0);
-
+	olc::Pixel ofCol = olc::Pixel(70, 70, 70);
 
 	int Ofst = 80;
 	int Spce = 14;
-	int newX = x + 30;
+	int newX = x + 80;
 	int newY = y + 28;
 	
 	DrawString(newX, newY, "  FLAGS -", txtCol);
@@ -72,20 +69,34 @@ void Demo_olc6502::DrawCpu()
 
 void Demo_olc6502::DrawPpu()
 {
-	// Draw Palettes & Pattern Tables ==============================================
-	const int nSwatchSize = 6;
-	for (int p = 0; p < 8; p++) // For each palette
-		for (int s = 0; s < 4; s++) // For each index
-			FillRect(516 + p * (nSwatchSize * 5) + s * nSwatchSize, 340,
-				nSwatchSize, nSwatchSize, nes.getPpu()->GetColourFromPaletteRam(p, s));
+	const int x = 256 * 2;
+	const int y = 330;
+	
+	const int sideWidth = GetDrawTargetWidth() - x;
 
+	const int pixelSize = 8;
+	const int paletteSize = pixelSize * 4;
+
+	const int tableSize = 128;
+	const int tableYOffset = y + 18;
+	const int tableMargin = (sideWidth - (tableSize * 2)) * 0.33333333f;
+	
+	// Draw Palettes & Pattern Tables ==============================================
+	for (int p = 0; p < 8; p++) // For each palette
+	{
+		for (int c = 0; c < 4; c++) // For each color
+		{
+			FillRect(pixelSize + x + (paletteSize * p) + (pixelSize * c) + (8 * p), y, pixelSize, pixelSize, nes.getPpu()->GetColourFromPaletteRam(p, c));
+		}
+	}
 	// Draw selection reticule around selected palette
-	DrawRect(516 + nSelectedPalette * (nSwatchSize * 5) - 1, 339, (nSwatchSize * 4), nSwatchSize, olc::WHITE);
+	DrawRect(pixelSize + x + nSelectedPalette * (pixelSize * 5) - 1, y, (pixelSize * 4), pixelSize, olc::WHITE);
 
 	// Generate Pattern Tables
 	
-	DrawSprite(516, 348, &nes.getPpu()->GetPatternTable(0, nSelectedPalette));
-	DrawSprite(648, 348, &nes.getPpu()->GetPatternTable(1, nSelectedPalette));
+
+	DrawSprite(x + tableMargin, tableYOffset, &nes.getPpu()->GetPatternTable(0, nSelectedPalette));
+	DrawSprite((x + tableSize) + (tableMargin * 2), tableYOffset, &nes.getPpu()->GetPatternTable(1, nSelectedPalette));
 
 	// Draw rendered output ========================================================
 	DrawSprite(0, 0, &nes.getPpu()->GetScreen(), 2);
@@ -95,10 +106,10 @@ void Demo_olc6502::DrawPpu()
 void Demo_olc6502::DrawCode(int nLines)
 {
 	int x = 256 * 2;
-	int y = cpuAreaHeight+20;
+	int y = cpuAreaHeight+10;
 
-	int newX = x + 6;
-	int spce = 12;
+	int newX = x + 52;
+	int spce = 10;
 
 		auto it_a = mapAsm.find(nes.getCpu()->pc);
 		int nLineY = (nLines >> 1) * spce + y;
@@ -210,7 +221,7 @@ bool Demo_olc6502::OnUserUpdate(float fElapsedTime)
 
 
 	DrawCpu();
-	DrawCode(26);
+	DrawCode(20);
 	DrawPpu();
 
 	return true;
